@@ -1,2 +1,2 @@
 # SADE
-Java Agent DEvelopment Framework
+Scala Agent DEvelopment Framework
