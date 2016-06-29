@@ -5,58 +5,68 @@ import akka.actor._
 import scala.collection.immutable.HashMap
 import br.unb.cic.sma.sade.fipa.Performative
 
-case object PingMessage
-case object PongMessage
 case object StartMessage
 case object StopMessage
+case object Done
 
 class Ping(pong: ActorRef) extends Actor {
   var count = 0
-  def incrementAndPrint { count += 1; println("ping") }
+  def incrementAndPrint { count += 1 }
   def receive = {
     case StartMessage =>
-        incrementAndPrint
-        pong ! PingMessage
-    case PongMessage => 
-        incrementAndPrint
-        if (count > 10) {
-          sender ! StopMessage
-          println("ping stopped")
-          context.stop(self)
-        } else {
-          sender ! PingMessage
-        }
+      incrementAndPrint
+      val startMsg = ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
+        (ACLMessageParameter.SENDER -> this.self),
+        (ACLMessageParameter.RECEIVER -> pong),
+        (ACLMessageParameter.CONTENT -> "PING TEST START")))
+      pong ! startMsg
     case msg: ACLMessage =>
-        println(msg.parameters.get(ACLMessageParameter.PERFORMATIVE).orNull + ":" + msg.parameters.get(ACLMessageParameter.CONTENT).orNull)
-        val reply = msg.reply(Performative.INFORM, "  PONG TEST")
-        val sendTo = reply.parameters.get(ACLMessageParameter.REPLY_TO).orNull.asInstanceOf[ActorRef]
-        reply.sender ! reply        
+      incrementAndPrint
+      if (count > 10) {
+        //sender ! StopMessage
+        context.actorSelection("../ripper") ! Done
+      } else {
+        println(msg.performative + ":" + msg.content + ":" + msg.sender)
+        val message = ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
+          (ACLMessageParameter.SENDER -> this.self),
+          (ACLMessageParameter.RECEIVER -> sender),
+          (ACLMessageParameter.CONTENT -> ("PING TEST " + count.toString))))
+        sender ! message
+      }
+    case StopMessage =>
+      println("ping stopped")
+      context.stop(self)
+
   }
 }
 
 class Pong extends Actor {
   def receive = {
-    case PingMessage =>
-        println("  pong")
-        val message = ACLMessage(HashMap((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
-                      (ACLMessageParameter.SENDER -> this.sender()),
-                      (ACLMessageParameter.RECEIVER -> sender),
-                      (ACLMessageParameter.CONTENT -> "PING TEST")))
-        sender ! PongMessage
-        sender ! message
-    case StopMessage =>
-        println("pong stopped")
-        context.stop(self)
     case msg: ACLMessage =>
-        println(msg.parameters.get(ACLMessageParameter.PERFORMATIVE).orNull + ":" + msg.parameters.get(ACLMessageParameter.CONTENT).orNull)
-        println(msg.parameters.get(ACLMessageParameter.SENDER).orNull.asInstanceOf[ActorRef])
+      println(msg.performative + ":" + msg.content + ":" + msg.sender)
+      val reply = msg.reply(Performative.INFORM, "  PONG TEST")
+      sender ! reply
+    case StopMessage =>
+      println("pong stopped")
+      context.stop(self)
+
   }
 }
 
-object Teste extends App{
+class Ripper(system: ActorSystem, souls: List[ActorRef]) extends Actor {
+  def receive = {
+    case Done =>
+      souls.foreach { soul => soul ! StopMessage }
+      system.shutdown()
+  }
+}
+
+object Teste extends App {
   val system = ActorSystem("PingPongSystem")
   val pong = system.actorOf(Props[Pong], name = "pong")
   val ping = system.actorOf(Props(new Ping(pong)), name = "ping")
+  val souls = List[ActorRef](ping, pong)
+  val ripper = system.actorOf(Props(new Ripper(system, souls)), name = "ripper")
   // start them going
   ping ! StartMessage
 }

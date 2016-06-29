@@ -12,6 +12,7 @@ case class ACLMessage(parameters: Map[ACLMessageParameter.ACLMessageParameter, A
               parameters.get(ACLMessageParameter.REPLY_TO).orNull.asInstanceOf[ActorRef]
             } else { parameters.get(ACLMessageParameter.SENDER).orNull.asInstanceOf[ActorRef] }
   def content = parameters.get(ACLMessageParameter.CONTENT).orNull
+  def performative = parameters.get(ACLMessageParameter.PERFORMATIVE).orNull.asInstanceOf[Performative.Performative]
   
   def reply(performative: Performative.Performative, contentTo: Any): ACLMessage = {
     val par = (parameters - ACLMessageParameter.PERFORMATIVE - 
