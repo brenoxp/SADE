@@ -61,7 +61,7 @@ class Ripper(system: ActorSystem, souls: List[ActorRef]) extends Actor {
   }
 }
 
-object Teste extends App {
+object TestMAS extends App {
   val system = ActorSystem("PingPongSystem")
   val pong = system.actorOf(Props[Pong], name = "pong")
   val ping = system.actorOf(Props(new Ping(pong)), name = "ping")
