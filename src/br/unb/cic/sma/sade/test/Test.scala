@@ -1,6 +1,7 @@
 package br.unb.cic.sma.sade.test
 
 import br.unb.cic.sma.sade.fipa._
+import br.unb.cic.sma.sade.agent._
 import akka.actor._
 import scala.collection.immutable.HashMap
 import br.unb.cic.sma.sade.fipa.Performative
@@ -9,7 +10,7 @@ case object StartMessage
 case object StopMessage
 case object Done
 
-class Ping(pong: ActorRef) extends Actor {
+class Ping(pong: ActorRef) extends Agent {
   var count = 0
   def incrementAndPrint { count += 1 }
   def receive = {
@@ -40,7 +41,7 @@ class Ping(pong: ActorRef) extends Actor {
   }
 }
 
-class Pong extends Actor {
+class Pong extends Agent {
   def receive = {
     case msg: ACLMessage =>
       println(msg.performative + ":" + msg.content + ":" + msg.sender)
@@ -53,7 +54,7 @@ class Pong extends Actor {
   }
 }
 
-class Ripper(system: ActorSystem, souls: List[ActorRef]) extends Actor {
+class Ripper(system: ActorSystem, souls: List[ActorRef]) extends Agent {
   def receive = {
     case Done =>
       souls.foreach { soul => soul ! StopMessage }
