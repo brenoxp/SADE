@@ -16,10 +16,9 @@ class Ping(pong: ActorRef) extends Agent {
   def receive = {
     case StartMessage =>
       incrementAndPrint
-      val startMsg = ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
-        (ACLMessageParameter.SENDER -> this.self),
-        (ACLMessageParameter.RECEIVER -> pong),
-        (ACLMessageParameter.CONTENT -> "PING TEST START")))
+      val startMsg = new ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
+          (ACLMessageParameter.SENDER -> this.self), (ACLMessageParameter.RECEIVER -> pong),
+          (ACLMessageParameter.CONTENT -> "PING TEST START")))
       pong ! startMsg
     case msg: ACLMessage =>
       incrementAndPrint
@@ -28,7 +27,7 @@ class Ping(pong: ActorRef) extends Agent {
         context.actorSelection("../ripper") ! Done
       } else {
         println(msg.performative + ":" + msg.content + ":" + msg.sender)
-        val message = ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
+        val message = new ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
           (ACLMessageParameter.SENDER -> this.self),
           (ACLMessageParameter.RECEIVER -> sender),
           (ACLMessageParameter.CONTENT -> ("PING TEST " + count.toString))))

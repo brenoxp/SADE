@@ -3,7 +3,7 @@ package br.unb.cic.sma.sade.fipa
 import scala.collection.immutable.Map
 import akka.actor.ActorRef
 
-case class ACLMessage(parameters: Map[ACLMessageParameter.ACLMessageParameter, Any]){
+class ACLMessage(parameters: Map[ACLMessageParameter.ACLMessageParameter, Any]){
   def frame = "fipa-acl-message"
   def ontology = "fipa-acl"
   def sender = parameters.get(ACLMessageParameter.SENDER).orNull.asInstanceOf[ActorRef]
@@ -23,6 +23,6 @@ case class ACLMessage(parameters: Map[ACLMessageParameter.ACLMessageParameter, A
                  (ACLMessageParameter.RECEIVER -> reply_to) +
                  (ACLMessageParameter.PERFORMATIVE -> performative) +
                  (ACLMessageParameter.CONTENT -> contentTo)
-    ACLMessage(par)
+    new ACLMessage(par)
   }
 }
