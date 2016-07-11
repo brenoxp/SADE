@@ -17,9 +17,10 @@ class Ping(pong: ActorRef) extends Agent {
     case StartMessage =>
       incrementAndPrint
       val startMsg = new ACLMessage(Map((ACLMessageParameter.PERFORMATIVE -> Performative.REQUEST),
-          (ACLMessageParameter.SENDER -> this.self), (ACLMessageParameter.RECEIVER -> pong),
-          (ACLMessageParameter.CONTENT -> "PING TEST START")))
+        (ACLMessageParameter.SENDER -> this.self), (ACLMessageParameter.RECEIVER -> pong),
+        (ACLMessageParameter.CONTENT -> "PING TEST START")))
       pong ! startMsg
+    case msg:Inform => println("INFORM: " + msg.content.toString()) //Inform is a ACLMessage as well. If it comes after it could not be executed     
     case msg: ACLMessage =>
       incrementAndPrint
       if (count > 10) {
@@ -36,7 +37,6 @@ class Ping(pong: ActorRef) extends Agent {
     case StopMessage =>
       println("ping stopped")
       context.stop(self)
-
   }
 }
 
@@ -46,6 +46,7 @@ class Pong extends Agent {
       println(msg.performative + ":" + msg.content + ":" + msg.sender)
       val reply = msg.reply(Performative.INFORM, "  PONG TEST")
       sender ! reply
+      sender ! Inform((reply.getParameters - ACLMessageParameter.CONTENT) + (ACLMessageParameter.CONTENT -> "Test CONTENT INFORM"))
     case StopMessage =>
       println("pong stopped")
       context.stop(self)

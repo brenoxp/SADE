@@ -13,6 +13,7 @@ class ACLMessage(parameters: Map[ACLMessageParameter.ACLMessageParameter, Any]){
             } else { parameters.get(ACLMessageParameter.SENDER).orNull.asInstanceOf[ActorRef] }
   def content = parameters.get(ACLMessageParameter.CONTENT).orNull
   def performative = parameters.get(ACLMessageParameter.PERFORMATIVE).orNull.asInstanceOf[Performative.Performative]
+  def getParameters = parameters
   
   def reply(performative: Performative.Performative, contentTo: Any): ACLMessage = {
     val par = (parameters - ACLMessageParameter.PERFORMATIVE - 
